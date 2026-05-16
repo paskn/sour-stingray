@@ -1,29 +1,39 @@
 
-A streamlit app for data colletion driven by yt-dlp.
+A streamlit app for data collection driven by yt-dlp.
 
 - You have URLs and IDs of your observations (Zeeschuimer/4CAT).
 - Bring them to the app.
 - The app collects the media for further analysis.
 
+## installation
+
+1. Get `uv` - https://docs.astral.sh/uv/#installation
+2. Clone or download and unzip this repository
+
 ## run
+
+In your terminal, navigate into the `sour-stingray` directory and run:
 
 ```bash
 uv run streamlit run main.py
 ```
 
-The app accepts Instagram CSV exports and Zeeschuimer NDJSON/JSONL exports. Choose a
-download directory in the app before starting the `yt-dlp` download run.
+The app accepts Instagram CSV exports (4CAT) and Zeeschuimer
+NDJSON/JSONL exports. Choose a download directory in the app before
+starting the `yt-dlp` download run.
 
-Downloads are named with the uploaded observation id and Instagram code:
+Downloads are named with the uploaded observation id and Instagram
+code:
 
 ```text
 <observation_id>__<instagram_code>__<extractor>_<yt-dlp_id>.<ext>
 ```
 
-Each run also writes `sour-stingray-download-log.jsonl` in the selected download
-directory. The log records the row id, URL, yt-dlp version, effective command,
-timestamp, status, and files produced. Enable the optional cookie upload when a
-platform needs authenticated access.
+Each run also writes `sour-stingray-download-log.jsonl` in the
+selected download directory. The log records the row id, URL, yt-dlp
+version, effective command, timestamp, status, and files produced.
+Enable the optional cookie upload when a platform needs authenticated
+access.
 
 ## project name
 
