@@ -99,16 +99,6 @@ def normalize_url(value: Any) -> str:
     return ""
 
 
-def extract_instagram_code(url: str) -> str:
-    parts = [part for part in url.split("?")[0].split("/") if part]
-    for marker in ("p", "reel", "reels", "tv"):
-        if marker in parts:
-            index = parts.index(marker)
-            if index + 1 < len(parts):
-                return parts[index + 1]
-    return ""
-
-
 def parse_csv_file(uploaded_file: Any) -> list[MediaItem]:
     content = uploaded_file.getvalue().decode("utf-8-sig")
     rows = csv.DictReader(io.StringIO(content))
@@ -210,8 +200,7 @@ def build_output_template(output_dir: Path) -> str:
 
 def build_item_output_template(output_dir: Path, item: MediaItem) -> str:
     observation_id = safe_filename_part(item.observation_id)
-    code = safe_filename_part(extract_instagram_code(item.url), "media")
-    return str(output_dir / f"{observation_id}__{code}__%(extractor_key)s_%(id)s.%(ext)s")
+    return str(output_dir / f"{observation_id}.%(ext)s")
 
 
 def build_command_log(item: MediaItem, output_template: str, cookie_file: Path | None, preset: str) -> str:
@@ -242,8 +231,7 @@ def append_row_log(output_dir: Path, row: dict[str, Any]) -> None:
 
 def item_files(output_dir: Path, item: MediaItem) -> list[str]:
     observation_id = safe_filename_part(item.observation_id)
-    code = safe_filename_part(extract_instagram_code(item.url), "media")
-    return sorted(path.name for path in output_dir.glob(f"{observation_id}__{code}__*") if path.is_file())
+    return sorted(path.name for path in output_dir.glob(f"{observation_id}.*") if path.is_file())
 
 
 def download_items(
