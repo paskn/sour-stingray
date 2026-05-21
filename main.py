@@ -334,7 +334,7 @@ def download_items(
 def render_app() -> None:
     st.set_page_config(page_title="Sour Stingray", page_icon=":material/download:", layout="wide")
     st.title("Sour Stingray")
-    st.caption("Collect Instagram media from CSV or Zeeschuimer NDJSON exports with yt-dlp.")
+    st.caption("Collect social media videos from CSV or Zeeschuimer NDJSON exports with yt-dlp.")
 
     uploaded_file = st.file_uploader("Input file", type=["csv", "ndjson", "jsonl"])
     output_dir_text = st.text_input("Download directory", value=str(Path.cwd() / "downloads"))
@@ -353,7 +353,7 @@ def render_app() -> None:
     )
 
     if not uploaded_file:
-        st.info("Upload an Instagram CSV or Zeeschuimer NDJSON export to begin.")
+        st.info("Upload a CSV or Zeeschuimer NDJSON export to begin.")
         return
 
     try:
