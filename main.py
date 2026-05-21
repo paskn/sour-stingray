@@ -346,6 +346,20 @@ def render_app() -> None:
         value=3.0,
         step=1.0,
     )
+    with st.expander("How to export a cookies.txt file"):
+        st.markdown(
+            "Some platforms (Instagram, TikTok, private YouTube, Facebook, X/Twitter) "
+            "require a logged-in session to fetch videos. Provide one as a "
+            "Netscape-format `cookies.txt`:\n\n"
+            "1. Install a browser extension that exports cookies, e.g. "
+            "`Get cookies.txt LOCALLY` for Chromium browsers or `cookies.txt` for Firefox.\n"
+            "2. Log into the target platform in your browser (e.g. `instagram.com`, `tiktok.com`).\n"
+            "3. Open the extension on that tab and export cookies for the current site in Netscape format.\n"
+            "4. Upload the resulting `.txt` file below.\n\n"
+            "The file is copied into your download directory as "
+            "`.sour-stingray-cookies.txt`; delete it when you no longer need it."
+        )
+
     cookie_upload = st.file_uploader(
         "Cookie file",
         type=["txt"],
