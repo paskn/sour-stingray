@@ -21,25 +21,19 @@ FILENAME_SAFE_RE = re.compile(r"[^A-Za-z0-9._-]+")
 
 
 PRESETS: dict[str, dict[str, Any]] = {
-    "Instagram": {
+    "Default": {
         "format": "bv*+ba/best",
         "retries": 3,
         "fragment_retries": 3,
         "socket_timeout": 30,
     },
-    "Instagram conservative": {
+    "Conservative": {
         "format": "bv*+ba/best",
         "retries": 8,
         "fragment_retries": 8,
         "socket_timeout": 45,
         "sleep_interval": 2,
         "max_sleep_interval": 8,
-    },
-    "Generic": {
-        "format": "bv*+ba/best",
-        "retries": 3,
-        "fragment_retries": 3,
-        "socket_timeout": 30,
     },
 }
 
@@ -338,7 +332,17 @@ def render_app() -> None:
 
     uploaded_file = st.file_uploader("Input file", type=["csv", "ndjson", "jsonl"])
     output_dir_text = st.text_input("Download directory", value=str(Path.cwd() / "downloads"))
-    preset = st.selectbox("Extractor preset", options=list(PRESETS), index=0)
+    preset = st.selectbox(
+        "Download profile",
+        options=list(PRESETS),
+        index=0,
+        help=(
+            "Controls retry and throttling behavior; the extractor itself is auto-selected by yt-dlp from the URL.\n\n"
+            "- **Default**: 3 retries, 30s socket timeout, no inter-request sleep. Use for normal runs.\n"
+            "- **Conservative**: 8 retries, 45s socket timeout, random 2–8s sleep between requests. "
+            "Use when a platform is rate-limiting you or fragments keep failing."
+        ),
+    )
     inter_request_delay = st.number_input(
         "Inter-request delay in seconds",
         min_value=0.0,
