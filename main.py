@@ -93,28 +93,30 @@ def normalize_url(value: Any) -> str:
     return ""
 
 
-def parse_csv_file(uploaded_file: Any) -> list[MediaItem]:
+def read_csv_columns(uploaded_file: Any) -> list[str]:
+    content = uploaded_file.getvalue().decode("utf-8-sig")
+    reader = csv.reader(io.StringIO(content))
+    try:
+        return [name for name in next(reader) if name]
+    except StopIteration:
+        return []
+
+
+def parse_csv_file(uploaded_file: Any, url_column: str) -> list[MediaItem]:
     content = uploaded_file.getvalue().decode("utf-8-sig")
     rows = csv.DictReader(io.StringIO(content))
     items: list[MediaItem] = []
 
     for row_number, row in enumerate(rows, start=2):
         observation_id = first_text(row.get("id"), row.get("thread_id"), row.get("parent_id"), row_number)
-        url = normalize_url(
-            first_text(
-                row.get("url"),
-                row.get("id"),
-                row.get("media_urls"),
-                row.get("collected_from_url"),
-            )
-        )
-        if not url:
+        text = first_text(row.get(url_column))
+        if not text.startswith(("http://", "https://")):
             continue
 
         items.append(
             MediaItem(
                 observation_id=observation_id,
-                url=url,
+                url=text,
                 source="csv",
                 author=first_text(row.get("author"), row.get("author_fullname"), row.get("author_id")),
                 caption=first_text(row.get("body"))[:240],
@@ -165,15 +167,6 @@ def parse_ndjson_file(uploaded_file: Any) -> list[MediaItem]:
         )
 
     return items
-
-
-def parse_uploaded_file(uploaded_file: Any) -> list[MediaItem]:
-    suffix = Path(uploaded_file.name).suffix.lower()
-    if suffix == ".csv":
-        return parse_csv_file(uploaded_file)
-    if suffix in {".ndjson", ".jsonl"}:
-        return parse_ndjson_file(uploaded_file)
-    raise ValueError("Upload a .csv, .ndjson, or .jsonl file.")
 
 
 def dedupe_items(items: list[MediaItem]) -> list[MediaItem]:
@@ -374,10 +367,30 @@ def render_app() -> None:
         st.info("Upload a CSV or Zeeschuimer NDJSON export to begin.")
         return
 
-    try:
-        parsed_items = parse_uploaded_file(uploaded_file)
-    except ValueError as exc:
-        st.error(str(exc))
+    suffix = Path(uploaded_file.name).suffix.lower()
+    if suffix == ".csv":
+        columns = read_csv_columns(uploaded_file)
+        if not columns:
+            st.error("Could not read column headers from the CSV.")
+            return
+        default_index = next(
+            (i for i, name in enumerate(columns) if "url" in name.lower()),
+            0,
+        )
+        url_column = st.selectbox(
+            "URL column",
+            options=columns,
+            index=default_index,
+            help=(
+                "Pick the CSV column whose values are full http(s) URLs to the videos. "
+                "Rows where this column is empty or not a URL will be skipped."
+            ),
+        )
+        parsed_items = parse_csv_file(uploaded_file, url_column)
+    elif suffix in {".ndjson", ".jsonl"}:
+        parsed_items = parse_ndjson_file(uploaded_file)
+    else:
+        st.error("Upload a .csv, .ndjson, or .jsonl file.")
         return
 
     items = dedupe_items(parsed_items)
