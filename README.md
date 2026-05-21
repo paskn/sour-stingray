@@ -18,22 +18,43 @@ In your terminal, navigate into the `sour-stingray` directory and run:
 uv run streamlit run main.py
 ```
 
-The app accepts Instagram CSV exports (4CAT) and Zeeschuimer
-NDJSON/JSONL exports. Choose a download directory in the app before
-starting the `yt-dlp` download run.
+The app accepts CSV files (e.g. 4CAT exports) and Zeeschuimer
+NDJSON/JSONL exports. For CSV input, pick which column holds the
+video URL in the dropdown that appears after upload. Choose a
+download directory in the app before starting the `yt-dlp` download
+run.
 
-Downloads are named with the uploaded observation id and Instagram
-code:
+Downloads are named after the row's observation id:
 
 ```text
-<observation_id>__<instagram_code>__<extractor>_<yt-dlp_id>.<ext>
+<observation_id>.<ext>
 ```
+
+The observation id comes from the `id`, `thread_id`, or `parent_id`
+column of the CSV (whichever is present first), falling back to the
+row number. A sibling `<observation_id>.info.json` is written by
+yt-dlp with the upstream metadata.
 
 Each run also writes `sour-stingray-download-log.jsonl` in the
 selected download directory. The log records the row id, URL, yt-dlp
 version, effective command, timestamp, status, and files produced.
 Enable the optional cookie upload when a platform needs authenticated
 access.
+
+## updating yt-dlp
+
+`uv run` uses the `yt-dlp` version pinned in `uv.lock`. Platforms
+break their extractors often, so when downloads start failing with
+errors like *"Unable to extract"* or *"Unsupported URL"*, refresh it:
+
+```bash
+uv sync --upgrade-package yt-dlp
+```
+
+The next `uv run streamlit run main.py` will use the new version. The
+exact version used for each download is recorded in
+`sour-stingray-download-log.jsonl` under `yt_dlp_version`, so you can
+check what you ran with after the fact.
 
 ## project name
 
