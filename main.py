@@ -352,6 +352,11 @@ def render_app() -> None:
     st.set_page_config(page_title="Sour Stingray", page_icon=":material/download:", layout="wide")
     st.title("Sour Stingray")
     st.caption("Collect social media videos from CSV or Zeeschuimer NDJSON exports with yt-dlp.")
+    st.markdown(
+    '''If ndjson import shows less post links than expected, try converting it to csv with
+    [this Google Colab notebook](https://colab.research.google.com/github/paskn/tools-as-notebooks/blob/main/zeeschuimer_to_csv.ipynb).
+    '''
+    )
 
     uploaded_file = st.file_uploader("Input file", type=["csv", "ndjson", "jsonl"])
     output_dir_text = st.text_input("Download directory", value=str(Path.cwd() / "downloads"))
