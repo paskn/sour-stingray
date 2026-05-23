@@ -140,6 +140,25 @@ def parse_ndjson_file(uploaded_file: Any) -> list[MediaItem]:
             continue
 
         data = record.get("data") if isinstance(record.get("data"), dict) else {}
+        platform = first_text(record.get("source_platform"))
+
+        if platform == "tiktok.com":
+            author = data.get("author") if isinstance(data.get("author"), dict) else {}
+            unique_id = first_text(author.get("uniqueId"))
+            video_id = first_text(data.get("id"), record.get("item_id"))
+            if not unique_id or not video_id:
+                continue
+            items.append(
+                MediaItem(
+                    observation_id=first_text(record.get("item_id"), video_id, row_number),
+                    url=f"https://www.tiktok.com/@{unique_id}/video/{video_id}",
+                    source="ndjson",
+                    author=first_text(author.get("uniqueId"), author.get("nickname")),
+                    caption=first_text(data.get("desc"))[:240],
+                )
+            )
+            continue
+
         user = data.get("user") if isinstance(data.get("user"), dict) else {}
         caption = data.get("caption") if isinstance(data.get("caption"), dict) else {}
 
