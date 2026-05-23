@@ -139,18 +139,29 @@ def parse_ndjson_file(uploaded_file: Any) -> list[MediaItem]:
         except json.JSONDecodeError:
             continue
 
-        data = record.get("data") if isinstance(record.get("data"), dict) else {}
-        platform = first_text(record.get("source_platform"))
+        raw_data = record.get("data")
+        if isinstance(raw_data, dict) and raw_data:
+            data = raw_data
+            meta = record
+        elif isinstance(record.get("__import_meta"), dict):
+            # 4CAT-converted NDJSON: payload hoisted to the top level, envelope under __import_meta
+            data = record
+            meta = record["__import_meta"]
+        else:
+            data = {}
+            meta = record
+
+        platform = first_text(meta.get("source_platform"))
 
         if platform == "tiktok.com":
             author = data.get("author") if isinstance(data.get("author"), dict) else {}
             unique_id = first_text(author.get("uniqueId"))
-            video_id = first_text(data.get("id"), record.get("item_id"))
+            video_id = first_text(data.get("id"), meta.get("item_id"))
             if not unique_id or not video_id:
                 continue
             items.append(
                 MediaItem(
-                    observation_id=first_text(record.get("item_id"), video_id, row_number),
+                    observation_id=first_text(meta.get("item_id"), video_id, row_number),
                     url=f"https://www.tiktok.com/@{unique_id}/video/{video_id}",
                     source="ndjson",
                     author=first_text(author.get("uniqueId"), author.get("nickname")),
@@ -167,7 +178,7 @@ def parse_ndjson_file(uploaded_file: Any) -> list[MediaItem]:
             first_text(
                 code,
                 data.get("url"),
-                record.get("source_platform_url"),
+                meta.get("source_platform_url"),
             )
         )
         if not url or url.rstrip("/") in {"https://www.instagram.com/reels", "https://www.instagram.com/reel"}:
@@ -177,7 +188,7 @@ def parse_ndjson_file(uploaded_file: Any) -> list[MediaItem]:
 
         items.append(
             MediaItem(
-                observation_id=first_text(record.get("item_id"), data.get("id"), code, row_number),
+                observation_id=first_text(meta.get("item_id"), data.get("id"), code, row_number),
                 url=url,
                 source="ndjson",
                 author=first_text(user.get("username"), user.get("full_name")),
